@@ -19,4 +19,6 @@ class GeneticAlgorithm:
         for individual in self.population.individuals:
           individual.fitness = self.fitness_function(individual)
 
+        self.population.survivor_of_the_fittest()
+
         self.population.reproduce()

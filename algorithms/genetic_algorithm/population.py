@@ -11,13 +11,24 @@ class Population:
     mutation_rate: float
     survivor_rate: float
 
-    def __init__(self, size: int, layer_sizes: Tuple[int, ...], mutation_rate: float, survivor_rate: float):
+    def __init__(
+            self, 
+            size: int, 
+            layer_sizes: Tuple[int, ...], 
+            mutation_rate: float = 0.01, 
+            survivor_rate: float = 0.1
+        ):
+
         self.individuals = [NeuralNetwork(layer_sizes) for _ in range(size)]
 
         self.size = size
         self.layer_sizes = layer_sizes
         self.mutation_rate = mutation_rate
         self.survivor_rate = survivor_rate
+
+    def survivor_of_the_fittest(self) -> None:
+        self.individuals.sort(key=lambda x: x.fitness, reverse=True)
+        self.individuals = self.individuals[:int(self.size * self.survivor_rate)]
 
     def selection(self) -> NeuralNetwork:
 
@@ -28,10 +39,12 @@ class Population:
             r -= probabilities[i]
             if r <= 0:
                 return self.individuals[i]
+        return self.individuals[-1]
 
     def crossover(self, parent1: NeuralNetwork, parent2: NeuralNetwork) -> NeuralNetwork:
         # Pick a random split point in the genome
         split = np.random.randint(len(parent1.genome))
+        print(split)
         child_genome = np.concatenate([parent1.genome[:split], parent2.genome[split:]])
         return NeuralNetwork(parent1.layer_sizes, genome=child_genome)
 
@@ -48,7 +61,7 @@ class Population:
 
         new_gen = []
 
-        for i in range(self.size):
+        for _ in range(self.size):
             parent1 = self.selection()
             parent2 = self.selection()
 
