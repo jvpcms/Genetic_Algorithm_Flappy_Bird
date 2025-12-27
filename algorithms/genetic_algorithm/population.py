@@ -44,7 +44,6 @@ class Population:
     def crossover(self, parent1: NeuralNetwork, parent2: NeuralNetwork) -> NeuralNetwork:
         # Pick a random split point in the genome
         split = np.random.randint(len(parent1.genome))
-        print(split)
         child_genome = np.concatenate([parent1.genome[:split], parent2.genome[split:]])
         return NeuralNetwork(parent1.layer_sizes, genome=child_genome)
 

@@ -24,7 +24,17 @@ class NeuralNetwork:
             total_genes += (layer_sizes[i+1] * layer_sizes[i]) + layer_sizes[i+1]
 
         if genome is None:
-            self.genome = np.random.standard_normal(total_genes) / np.sqrt(total_genes)
+            # Use Xavier/Glorot initialization for better weight distribution
+            self.genome = np.random.standard_normal(total_genes)
+            # Scale weights by layer size (Xavier initialization)
+            idx = 0
+            for w_shape, b_shape in gene_shapes:
+                w_size = np.prod(w_shape)
+                b_size = np.prod(b_shape)
+                # Xavier initialization: scale by sqrt of input size
+                fan_in = w_shape[1]
+                self.genome[idx:idx + w_size] /= np.sqrt(fan_in)
+                idx += w_size + b_size
         else:
             self.genome = genome
 
@@ -43,6 +53,10 @@ class NeuralNetwork:
 
 
     def predict(self, a: np.ndarray) -> np.ndarray:
+        # Ensure input is a column vector
+        if a.ndim == 1:
+            a = a.reshape(-1, 1)
+        
         for w, b in self.layers:
             a = np.dot(w, a) + b
             a = self.activation(a)
