@@ -15,9 +15,9 @@ class ClassificationDataset(ABC):
 
   features_size: int
   classes_size: int
-  X_train: np.ndarray
+  x_train: np.ndarray
   y_train: np.ndarray
-  X_test: np.ndarray
+  x_test: np.ndarray
   y_test: np.ndarray
 
   noise: float = 0.1
@@ -36,8 +36,8 @@ class ClassificationDataset(ABC):
     self.features_size = features_size
     self.classes_size = classes_size
         
-    self.train_size = int(sample_size * (1 - train_test_split))
     self.test_size = int(sample_size * train_test_split)
+    self.train_size = sample_size - self.test_size
 
   @abstractmethod
   def generate_data(self) -> None:
@@ -56,16 +56,16 @@ class ConcentricCirclesDataset(ClassificationDataset):
     Generate the data for the concentric circles dataset.
     """
 
-    self.X_train, self.y_train = make_gaussian_quantiles(
-      n_samples=self.train_size, 
+    X, Y = make_gaussian_quantiles(
+      n_samples=self.train_size + self.test_size, 
       n_features=self.features_size,
       n_classes=self.classes_size,
     )
-    self.X_test, self.y_test = make_gaussian_quantiles(
-      n_samples=self.test_size, 
-      n_features=self.features_size,
-      n_classes=self.classes_size,
-    )
+
+    self.x_train = X[:self.train_size]
+    self.y_train = Y[:self.train_size]
+    self.x_test = X[self.train_size:]
+    self.y_test = Y[self.train_size:]
 
 
 class NonLinearClustersDataset(ClassificationDataset):
@@ -77,23 +77,23 @@ class NonLinearClustersDataset(ClassificationDataset):
     Generate the data for the non linear clusters dataset.
     Only supports 2 classes and 2 or more features.
     """
-    self.X_train, self.y_train = make_moons(
-      n_samples=self.train_size, 
-      noise=self.noise
-    )
-    self.X_test, self.y_test = make_moons(
-      n_samples=self.test_size, 
+    X, Y = make_moons(
+      n_samples=self.train_size + self.test_size, 
       noise=self.noise
     )
 
     if self.features_size > 2:
-      self.X_train = np.hstack([self.X_train, np.random.normal(0, 0.1, (self.train_size, self.features_size - 2))])
-      self.X_test = np.hstack([self.X_test, np.random.normal(0, 0.1, (self.test_size, self.features_size - 2))])
+      X = np.hstack([X, np.random.normal(0, 0.1, (self.train_size + self.test_size, self.features_size - 2))])
     elif self.features_size == 1:
       raise ValueError("Features size must be greater than 1")
 
     if self.classes_size != 2:
       raise ValueError("Only supports 2 classes")
+
+    self.x_train = X[:self.train_size]
+    self.y_train = Y[:self.train_size]
+    self.x_test = X[self.train_size:]
+    self.y_test = Y[self.train_size:]
 
 
 class BlobsDataset(ClassificationDataset):
@@ -105,13 +105,13 @@ class BlobsDataset(ClassificationDataset):
     Generate the data for clusters in n-dimensional space dataset.
     """
 
-    self.X_train, self.y_train = make_blobs(
-      n_samples=self.train_size, 
+    X, Y = make_blobs(
+      n_samples=self.train_size + self.test_size, 
       n_features=self.features_size,
       centers=self.classes_size,
     )
-    self.X_test, self.y_test = make_blobs(
-      n_samples=self.test_size, 
-      n_features=self.features_size,
-      centers=self.classes_size,
-    )
+
+    self.x_train = X[:self.train_size]
+    self.y_train = Y[:self.train_size]
+    self.x_test = X[self.train_size:]
+    self.y_test = Y[self.train_size:]

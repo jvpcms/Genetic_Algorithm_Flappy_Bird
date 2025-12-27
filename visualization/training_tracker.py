@@ -75,6 +75,7 @@ class TrainingTracker:
   def decision_boundary_figure(self) -> MatplotlibFigure:
       """
       Plot the decision boundary of the best classifier.
+      Training data shown as circles, test data shown as triangles.
       
       Args:
           None
@@ -83,9 +84,10 @@ class TrainingTracker:
          matplotlib.figure.Figure: The figure object.
       """
       resolution = 200
-      # Auto-determine ranges from data if not provided
-      x_range = (self.classification_dataset.X_train[:, 0].min() - 0.5, self.classification_dataset.X_train[:, 0].max() + 0.5)
-      y_range = (self.classification_dataset.X_train[:, 1].min() - 0.5, self.classification_dataset.X_train[:, 1].max() + 0.5)
+      # Auto-determine ranges from both train and test data
+      all_X = np.vstack([self.classification_dataset.x_train, self.classification_dataset.x_test])
+      x_range = (all_X[:, 0].min() - 0.5, all_X[:, 0].max() + 0.5)
+      y_range = (all_X[:, 1].min() - 0.5, all_X[:, 1].max() + 0.5)
       
       # Create meshgrid
       x_min, x_max = x_range
@@ -115,22 +117,39 @@ class TrainingTracker:
       plt.contourf(X_mesh, Y_mesh, Z, alpha=0.4, cmap=plt.cm.Spectral)
       plt.contour(X_mesh, Y_mesh, Z, colors='black', linewidths=0.5, alpha=0.2)
       
-      # Overlay actual data points
-      scatter = plt.scatter(
-        self.classification_dataset.X_train[:, 0], 
-        self.classification_dataset.X_train[:, 1], 
+      # Overlay training data points as circles
+      train_scatter = plt.scatter(
+        self.classification_dataset.x_train[:, 0], 
+        self.classification_dataset.x_train[:, 1], 
         c=self.classification_dataset.y_train, 
         cmap=plt.cm.Spectral, 
         edgecolors='black', 
         linewidths=1.5, 
         s=100, 
-        zorder=10
+        marker='o',  # circles
+        zorder=10,
+        label='Training Data'
+      )
+      
+      # Overlay test data points as triangles
+      test_scatter = plt.scatter(
+        self.classification_dataset.x_test[:, 0], 
+        self.classification_dataset.x_test[:, 1], 
+        c=self.classification_dataset.y_test, 
+        cmap=plt.cm.Spectral, 
+        edgecolors='black', 
+        linewidths=1.5, 
+        s=100, 
+        marker='^',  # triangles
+        zorder=10,
+        label='Test Data'
       )
       
       plt.xlabel('Feature 1')
       plt.ylabel('Feature 2')
-      plt.title('Decision Boundary with Training Data Points')
-      plt.colorbar(scatter, label='Class')
+      plt.title('Decision Boundary with Training (circles) and Test (triangles) Data')
+      plt.colorbar(train_scatter, label='Class')
+      plt.legend()
       plt.tight_layout()
       return plt.gcf()
 
@@ -207,7 +226,7 @@ class TrainingTracker:
     train_hits = 0
     test_hits = 0
 
-    for point, classification in zip(self.classification_dataset.X_train, self.classification_dataset.y_train):
+    for point, classification in zip(self.classification_dataset.x_train, self.classification_dataset.y_train):
       output = self.best_classifier(point)
       predicted_class = np.argmax(output.flatten())
       if predicted_class == classification:
@@ -215,7 +234,7 @@ class TrainingTracker:
 
     train_accuracy = train_hits / len(self.classification_dataset.y_train)
 
-    for point, classification in zip(self.classification_dataset.X_test, self.classification_dataset.y_test):
+    for point, classification in zip(self.classification_dataset.x_test, self.classification_dataset.y_test):
       output = self.best_classifier(point)
       predicted_class = np.argmax(output.flatten())
       if predicted_class == classification:
