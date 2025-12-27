@@ -7,10 +7,11 @@ matplotlib_use('Qt5Agg')  # Use Qt5 interactive backend
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure as MatplotlibFigure
 
+from datasets.classification_datasets import ClassificationDataset
 
 class TrainingTracker:
 
-  training_data: Tuple[np.ndarray, np.ndarray]
+  classification_dataset: ClassificationDataset
   best_classifier: Callable[[np.ndarray], np.ndarray]
 
   maximum_performance: List[float] = []
@@ -18,19 +19,19 @@ class TrainingTracker:
   average_performance: List[float] = []
   verbose: bool
 
-  def __init__(self, training_data: Tuple[np.ndarray, np.ndarray], verbose: bool = False) -> 'TrainingTracker':
+  def __init__(self, classification_dataset: ClassificationDataset, verbose: bool = False) -> 'TrainingTracker':
     """
     Initialize the training tracker object.
 
     Args:
-        training_data: The training data.
+        classification_dataset: The classification dataset.
         verbose: Whether to print the tracked metrics to the console.
 
     Returns:
         TrainingTracker: The initialized training tracker object.
     """
 
-    self.training_data = training_data
+    self.classification_dataset = classification_dataset
     self.verbose = verbose
 
     if self.verbose:
@@ -83,8 +84,8 @@ class TrainingTracker:
       """
       resolution = 200
       # Auto-determine ranges from data if not provided
-      x_range = (self.training_data[0][:, 0].min() - 0.5, self.training_data[0][:, 0].max() + 0.5)
-      y_range = (self.training_data[0][:, 1].min() - 0.5, self.training_data[0][:, 1].max() + 0.5)
+      x_range = (self.classification_dataset.X_train[:, 0].min() - 0.5, self.classification_dataset.X_train[:, 0].max() + 0.5)
+      y_range = (self.classification_dataset.X_train[:, 1].min() - 0.5, self.classification_dataset.X_train[:, 1].max() + 0.5)
       
       # Create meshgrid
       x_min, x_max = x_range
@@ -116,9 +117,9 @@ class TrainingTracker:
       
       # Overlay actual data points
       scatter = plt.scatter(
-        self.training_data[0][:, 0], 
-        self.training_data[0][:, 1], 
-        c=self.training_data[1], 
+        self.classification_dataset.X_train[:, 0], 
+        self.classification_dataset.X_train[:, 1], 
+        c=self.classification_dataset.y_train, 
         cmap=plt.cm.Spectral, 
         edgecolors='black', 
         linewidths=1.5, 
@@ -128,8 +129,8 @@ class TrainingTracker:
       
       plt.xlabel('Feature 1')
       plt.ylabel('Feature 2')
-      plt.title('Neural Network Decision Boundary with Data Points')
-      plt.colorbar(scatter, label='Predicted Class')
+      plt.title('Decision Boundary with Training Data Points')
+      plt.colorbar(scatter, label='Class')
       plt.tight_layout()
       return plt.gcf()
 
@@ -191,3 +192,35 @@ class TrainingTracker:
       print("Warning: best_classifier not set. Skipping decision boundary plot.")
       if perf_fig is not None:
         plt.show(block=True)  # Block on performance plot if no decision boundary
+        
+  def train_test_accuracy(self) -> Tuple[float, float]:
+    """
+    Compute the train and test accuracy of the best classifier.
+
+    Args:
+        None
+
+    Returns:
+        Tuple[float, float]: The train and test accuracy.
+    """
+
+    train_hits = 0
+    test_hits = 0
+
+    for point, classification in zip(self.classification_dataset.X_train, self.classification_dataset.y_train):
+      output = self.best_classifier(point)
+      predicted_class = np.argmax(output.flatten())
+      if predicted_class == classification:
+        train_hits += 1
+
+    train_accuracy = train_hits / len(self.classification_dataset.y_train)
+
+    for point, classification in zip(self.classification_dataset.X_test, self.classification_dataset.y_test):
+      output = self.best_classifier(point)
+      predicted_class = np.argmax(output.flatten())
+      if predicted_class == classification:
+        test_hits += 1
+
+    test_accuracy = test_hits / len(self.classification_dataset.y_test)
+
+    return train_accuracy, test_accuracy
