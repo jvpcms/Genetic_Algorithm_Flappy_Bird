@@ -17,13 +17,37 @@ class GeneticAlgorithm:
       generations: int, 
       fitness_function: Callable[[NeuralNetwork], float],
       training_tracker: Optional[TraningTracker] = None
-    ):
-        self.population = population
-        self.generations = generations
-        self.fitness_function = fitness_function
-        self.training_tracker = training_tracker
+    ) -> 'GeneticAlgorithm':
+      """
+      Initialize the genetic algorithm object.
+
+      Args:
+          population: The population of individuals.
+          generations: The number of generations.
+          fitness_function: The fitness function.
+          training_tracker: The training tracker.
+
+      Returns:
+          GeneticAlgorithm: The initialized genetic algorithm object.
+      """
+
+      self.population = population
+      self.generations = generations
+      self.fitness_function = fitness_function
+      self.training_tracker = training_tracker
 
     def run(self):
+      """
+      Run the genetic algorithm.
+      Performs the genetic algorithm process for the given number of generations.
+
+      Args:
+          None
+
+      Returns:
+          None
+      """
+
       for individual in self.population.individuals:
         individual.fitness = self.fitness_function(individual)
 

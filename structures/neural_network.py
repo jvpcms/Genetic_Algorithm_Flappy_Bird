@@ -10,7 +10,17 @@ class NeuralNetwork:
     layers: List[Tuple[np.ndarray, np.ndarray]]
     fitness: float = 0
 
-    def __init__(self, layer_sizes: Tuple[int, ...], genome: Optional[np.ndarray] = None):
+    def __init__(self, layer_sizes: Tuple[int, ...], genome: Optional[np.ndarray] = None) -> 'NeuralNetwork':
+        """
+        Initialize the neural network object.
+
+        Args:
+            layer_sizes: The sizes of the layers in the network.
+            genome: The genome of the network. If None, the genome will be initialized randomly.
+
+        Returns:
+            NeuralNetwork: The initialized neural network object.
+        """
 
         self.layer_sizes = layer_sizes
 
@@ -53,6 +63,19 @@ class NeuralNetwork:
 
 
     def predict(self, a: np.ndarray) -> np.ndarray:
+        """
+        Feed input through the network and return the output.
+
+        Args:
+            a: The input to the network.
+              - Must be a column vector.
+              - Must be of shape (n_features, 1).
+
+        Returns:
+            np.ndarray: The output of the network.
+              - Must be a column vector.
+              - Must be of shape (n_outputs, 1).
+        """
         # Ensure input is a column vector
         if a.ndim == 1:
             a = a.reshape(-1, 1)
@@ -65,9 +88,26 @@ class NeuralNetwork:
     
     @staticmethod
     def activation(x: np.ndarray) -> np.ndarray:
+        """
+        Apply the activation function to the input.
+
+        Args:
+            x: The input to the activation function.
+
+        Returns:
+            np.ndarray: The output of the activation function.
+              - Must be a column vector.
+              - Must be of shape (n_outputs, 1).
+        """
         return 1 / (1 + np.exp(-x))
 
     def __repr__(self) -> str:
+        """
+        Return a string representation of the neural network.
+
+        Returns:
+            str: A string representation of the neural network.
+        """
         result = "Neural Network:\n"
         for i, layer in enumerate(self.layers):
             result += f"Layer {i + 1}: {layer[0].shape} -> {layer[1].shape}\n"
