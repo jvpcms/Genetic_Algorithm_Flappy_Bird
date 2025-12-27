@@ -1,3 +1,3 @@
-from .traning_tracker import TraningTracker
+from .training_tracker import TrainingTracker
 
-__all__ = ['TraningTracker']
+__all__ = ['TrainingTracker']
