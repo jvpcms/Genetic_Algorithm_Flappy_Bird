@@ -5,18 +5,22 @@ from typing import List, Tuple, Optional
 
 class Population:
     individuals: List[NeuralNetwork]
+    survivors: List[NeuralNetwork]
     size: int
     layer_sizes: Tuple[int, ...]
 
     mutation_rate: float
     survivor_rate: float
+    elitism_rate: float
 
     def __init__(
             self, 
             size: int, 
             layer_sizes: Tuple[int, ...], 
+            *,
             mutation_rate: float = 0.01, 
-            survivor_rate: float = 0.1
+            survivor_rate: float = 0.1,
+            elitism_enabled: bool = False
         ) -> 'Population':
         """
         Initialize the population object.
@@ -26,16 +30,19 @@ class Population:
             layer_sizes: The sizes of the layers in the network.
             mutation_rate: The rate of mutation.
             survivor_rate: The rate of survivors.
+            elitism_enabled: Whether elitism is enabled.
 
         Returns:
             Population: The initialized population object.
         """
         self.individuals = [NeuralNetwork(layer_sizes) for _ in range(size)]
+        self.survivors = []
 
         self.size = size
         self.layer_sizes = layer_sizes
         self.mutation_rate = mutation_rate
         self.survivor_rate = survivor_rate
+        self.elitism_enabled = elitism_enabled
 
     def survivor_of_the_fittest(self) -> None:
         """
@@ -49,7 +56,7 @@ class Population:
             None
         """
         self.individuals.sort(key=lambda x: x.fitness, reverse=True)
-        self.individuals = self.individuals[:int(self.size * self.survivor_rate)]
+        self.survivors = self.individuals[:int(self.size * self.survivor_rate)]
 
     def selection(self) -> NeuralNetwork:
         """
@@ -64,14 +71,14 @@ class Population:
             NeuralNetwork: The selected parent.
         """
 
-        sum_fitness = sum(individual.fitness for individual in self.individuals)
-        probabilities = [individual.fitness / sum_fitness for individual in self.individuals]
+        sum_fitness = sum(survivor.fitness for survivor in self.survivors)
+        probabilities = [survivor.fitness / sum_fitness for survivor in self.survivors]
         r = np.random.rand()
         for i in range(len(probabilities)):
             r -= probabilities[i]
             if r <= 0:
-                return self.individuals[i]
-        return self.individuals[-1]
+                return self.survivors[i]
+        return self.survivors[-1]
 
     def crossover(self, parent1: NeuralNetwork, parent2: NeuralNetwork) -> NeuralNetwork:
         """
@@ -123,9 +130,10 @@ class Population:
             None
         """
 
-        new_gen = []
+        new_gen = self.survivors if self.elitism_enabled else []
+        n_children = self.size - len(new_gen)
 
-        for _ in range(self.size):
+        for _ in range(n_children):
             parent1 = self.selection()
             parent2 = self.selection()
 
