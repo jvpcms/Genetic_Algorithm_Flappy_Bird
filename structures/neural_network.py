@@ -101,6 +101,18 @@ class NeuralNetwork:
         """
         return 1 / (1 + np.exp(-x))
 
+    def similarity(self, other: 'NeuralNetwork') -> float:
+        """
+        Calculate the similarity between two neural networks using the cosine similarity.
+
+        Args:
+            other: The other neural network.
+
+        Returns:
+            float: The similarity between the two neural networks.
+        """
+        return np.dot(self.genome, other.genome) / (np.linalg.norm(self.genome) * np.linalg.norm(other.genome))
+
     def __repr__(self) -> str:
         """
         Return a string representation of the neural network.
