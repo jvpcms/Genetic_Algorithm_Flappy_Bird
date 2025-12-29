@@ -1,12 +1,17 @@
 import numpy as np
 from abc import ABC, abstractmethod
+from enum import Enum
 from sklearn.datasets import (
   make_gaussian_quantiles, 
   make_moons, 
   make_swiss_roll, 
   make_blobs,
 )
-# X, y = make_moons(n_samples=100, noise=0.1)
+
+class DatasetType(Enum):
+  CONCENTRIC_CIRCLES = "concentric_circles"
+  NON_LINEAR_CLUSTERS = "non_linear_clusters"
+  BLOBS = "blobs"
 
 
 class ClassificationDataset(ABC):
