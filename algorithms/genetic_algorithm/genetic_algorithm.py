@@ -64,6 +64,10 @@ class GeneticAlgorithm:
           survivor.similarity(self.population.survivors[0]) for survivor in self.population.survivors
         ]
 
+        if self.logger is not None:
+            for survivor_sim in survivor_similarity_to_best:
+                self.logger.debug(f"{survivor_sim}")
+
         self.population.reproduce()
 
         for individual in self.population.individuals:

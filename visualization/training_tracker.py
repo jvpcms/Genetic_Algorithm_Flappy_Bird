@@ -218,19 +218,24 @@ class TrainingTracker:
       return None
     
     # Create similarity bin edges from -1.0 to 1.0 in 0.1 increments
-    bin_edges = np.arange(-1.0, 1.1, 0.1)  # -1.0, -0.9, ..., 0.9, 1.0
-    n_bins = len(bin_edges) - 1
+    # We'll have separate bins: regular bins and a special bin for exactly 1.0
+    bin_edges = np.arange(-1.0, 1.0, 0.1)  # -1.0, -0.9, ..., 0.8, 0.9
+    n_regular_bins = len(bin_edges) - 1  # Regular bins: [-1.0, -0.9], [-0.9, -0.8), ..., [0.8, 0.9)
+    n_bins = n_regular_bins + 1  # Add one more for exactly 1.0
     n_generations = len(self.survivor_similarity_to_best)
     
     # Create bin labels with proper inclusivity
     bin_labels = []
-    for i in range(n_bins):
+    for i in range(n_regular_bins):
       if i == 0:
         # First bin: both bounds inclusive [-1.0, -0.9]
         bin_labels.append(f'[{bin_edges[i]:.1f}, {bin_edges[i+1]:.1f}]')
       else:
-        # Other bins: top bound inclusive (-0.9, -0.8]
-        bin_labels.append(f'({bin_edges[i]:.1f}, {bin_edges[i+1]:.1f}]')
+        # Other regular bins: closed on lower bound, open on upper [lower, upper)
+        bin_labels.append(f'[{bin_edges[i]:.1f}, {bin_edges[i+1]:.1f})')
+    
+    # Add special bin for exactly 1.0 (identical)
+    bin_labels.append('[1.0, 1.0]')
     
     # Create a 2D array to store percentages: [generation][similarity_bin]
     similarity_percentages = np.zeros((n_generations, n_bins))
@@ -241,18 +246,33 @@ class TrainingTracker:
         # Manually assign to bins with correct inclusivity
         counts = np.zeros(n_bins)
         for sim in similarities:
-          # Find which bin this similarity belongs to
-          for bin_idx in range(n_bins):
-            if bin_idx == 0:
-              # First bin: [-1.0, -0.9] (both inclusive)
-              if bin_edges[0] <= sim <= bin_edges[1]:
-                counts[bin_idx] += 1
-                break
-            else:
-              # Other bins: (bin_edges[i], bin_edges[i+1]] (top inclusive)
-              if bin_edges[bin_idx] < sim <= bin_edges[bin_idx + 1]:
-                counts[bin_idx] += 1
-                break
+          # Clamp similarity to valid range [-1.0, 1.0]
+          sim = max(-1.0, min(1.0, sim))
+          
+          # Check if exactly 1.0 (identical) - goes to special bin
+          if sim == 1.0:
+            counts[n_bins - 1] += 1  # Last bin is for exactly 1.0
+          else:
+            # Find which regular bin this similarity belongs to
+            assigned = False
+            for bin_idx in range(n_regular_bins):
+              if bin_idx == 0:
+                # First bin: [-1.0, -0.9] (both inclusive)
+                if bin_edges[0] <= sim <= bin_edges[1]:
+                  counts[bin_idx] += 1
+                  assigned = True
+                  break
+              else:
+                # Other bins: [bin_edges[i], bin_edges[i+1]) (closed on lower, open on upper)
+                if bin_edges[bin_idx] <= sim < bin_edges[bin_idx + 1]:
+                  counts[bin_idx] += 1
+                  assigned = True
+                  break
+            
+            # Safety check: if not assigned (shouldn't happen for values < 1.0)
+            if not assigned:
+              # Assign to the bin just before 1.0
+              counts[n_regular_bins - 1] += 1
         
         # Convert to percentages
         total = np.sum(counts)
