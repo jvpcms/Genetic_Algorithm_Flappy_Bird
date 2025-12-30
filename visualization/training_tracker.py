@@ -186,6 +186,7 @@ class TrainingTracker:
     plt.xlabel('Generation')
     plt.ylabel('Fitness')
     plt.title('Training Progress')
+    plt.ylim(0, 1)  # Always show full range from 0 to 1
     plt.grid(True, alpha=0.3)
     plt.legend()
     plt.tight_layout()
