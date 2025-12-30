@@ -65,7 +65,8 @@ class GeneticAlgorithm:
         ]
 
         if self.logger is not None:
-          self.logger.debug(f"Survivor similarity to best: {survivor_similarity_to_best}")
+          for similarity in survivor_similarity_to_best:
+            self.logger.debug(f"Survivor similarity to best: {similarity:.4f}")
 
         self.population.reproduce()
 
