@@ -21,7 +21,7 @@ class GeneticAlgorithm:
       *,
       logger: Optional[Logger] = None,
       training_tracker: Optional[TrainingTracker] = None
-    ) -> 'GeneticAlgorithm':
+      ) -> None:
       """
       Initialize the genetic algorithm object.
 
@@ -32,7 +32,7 @@ class GeneticAlgorithm:
           training_tracker: The training tracker. If None, the training tracker will not be used.
 
       Returns:
-          GeneticAlgorithm: The initialized genetic algorithm object.
+          None
       """
 
       self.population = population
@@ -63,10 +63,6 @@ class GeneticAlgorithm:
         survivor_similarity_to_best = [
           survivor.similarity(self.population.survivors[0]) for survivor in self.population.survivors
         ]
-
-        if self.logger is not None:
-          for similarity in survivor_similarity_to_best:
-            self.logger.debug(f"Survivor similarity to best: {similarity:.4f}")
 
         self.population.reproduce()
 

@@ -22,7 +22,7 @@ class TrainingTracker:
 
   logger: Optional[Logger]
 
-  def __init__(self, classification_dataset: ClassificationDataset, logger: Optional[Logger] = None) -> 'TrainingTracker':
+  def __init__(self, classification_dataset: ClassificationDataset, logger: Optional[Logger] = None) -> None:
     """
     Initialize the training tracker object.
 
@@ -31,7 +31,7 @@ class TrainingTracker:
         logger: The logger.
 
     Returns:
-        TrainingTracker: The initialized training tracker object.
+        None
     """
 
     self.classification_dataset = classification_dataset

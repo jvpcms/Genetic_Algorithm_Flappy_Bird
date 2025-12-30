@@ -10,7 +10,7 @@ class NeuralNetwork:
     layers: List[Tuple[np.ndarray, np.ndarray]]
     fitness: float = 0
 
-    def __init__(self, layer_sizes: Tuple[int, ...], genome: Optional[np.ndarray] = None) -> 'NeuralNetwork':
+    def __init__(self, layer_sizes: Tuple[int, ...], genome: Optional[np.ndarray] = None) -> None:
         """
         Initialize the neural network object.
 
@@ -19,7 +19,7 @@ class NeuralNetwork:
             genome: The genome of the network. If None, the genome will be initialized randomly.
 
         Returns:
-            NeuralNetwork: The initialized neural network object.
+            None
         """
 
         self.layer_sizes = layer_sizes

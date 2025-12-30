@@ -21,7 +21,7 @@ class Population:
             mutation_rate: float = 0.01, 
             survivor_rate: float = 0.1,
             elitism_enabled: bool = False
-        ) -> 'Population':
+        ) -> None:
         """
         Initialize the population object.
 
@@ -33,7 +33,7 @@ class Population:
             elitism_enabled: Whether elitism is enabled.
 
         Returns:
-            Population: The initialized population object.
+            None
         """
         self.individuals = [NeuralNetwork(layer_sizes) for _ in range(size)]
         self.survivors = []
