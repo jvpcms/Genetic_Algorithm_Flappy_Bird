@@ -3,7 +3,7 @@ from visualization import TrainingTracker
 
 from typing import Callable, Optional
 from structures.neural_network import NeuralNetwork
-
+from custom_logging import Logger
 
 class GeneticAlgorithm:
     population: Population
@@ -11,11 +11,15 @@ class GeneticAlgorithm:
     fitness_function: Callable[[NeuralNetwork], float]
     training_tracker: Optional[TrainingTracker]
 
+    logger: Optional[Logger]
+
     def __init__(
       self, 
       population: Population, 
       generations: int, 
       fitness_function: Callable[[NeuralNetwork], float],
+      *,
+      logger: Optional[Logger] = None,
       training_tracker: Optional[TrainingTracker] = None
     ) -> 'GeneticAlgorithm':
       """
@@ -35,6 +39,7 @@ class GeneticAlgorithm:
       self.generations = generations
       self.fitness_function = fitness_function
       self.training_tracker = training_tracker
+      self.logger = logger
 
     def run(self):
       """
@@ -55,6 +60,13 @@ class GeneticAlgorithm:
 
         self.population.survivor_of_the_fittest()
 
+        survivor_similarity_to_best = [
+          survivor.similarity(self.population.survivors[0]) for survivor in self.population.survivors
+        ]
+
+        if self.logger is not None:
+          self.logger.debug(f"Survivor similarity to best: {survivor_similarity_to_best}")
+
         self.population.reproduce()
 
         for individual in self.population.individuals:
@@ -65,5 +77,16 @@ class GeneticAlgorithm:
             iteration=i,
             maximum_performance=max(individual.fitness for individual in self.population.individuals),
             minimum_performance=min(individual.fitness for individual in self.population.individuals),
-            average_performance=sum(individual.fitness for individual in self.population.individuals) / len(self.population.individuals)
+            average_performance=sum(individual.fitness for individual in self.population.individuals) / len(self.population.individuals),
+            survivor_similarity_to_best=survivor_similarity_to_best,
           )
+
+      if self.training_tracker is not None:
+        self.training_tracker.set_best_classifier(self.population.individuals[0].predict)
+
+        train_accuracy, test_accuracy = self.training_tracker.train_test_accuracy()
+        if self.logger is not None:
+          self.logger.debug(f"Train accuracy: {train_accuracy:.4f}") 
+          self.logger.debug(f"Test accuracy: {test_accuracy:.4f}")
+
+        self.training_tracker.plot()
