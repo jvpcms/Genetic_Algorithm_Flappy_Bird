@@ -12,6 +12,19 @@ class LogLevel(Enum):
   def __ge__(self, other: 'LogLevel') -> bool:
     return self.value >= other.value
 
+  @staticmethod
+  def from_int(log_level: int) -> 'LogLevel':
+    if log_level == 5:
+      return LogLevel.DEBUG
+    elif log_level == 4:
+      return LogLevel.INFO
+    elif log_level == 3:
+      return LogLevel.WARNING
+    elif log_level == 2:
+      return LogLevel.ERROR
+    elif log_level == 1:
+      return LogLevel.CRITICAL
+
 class LogColor(Enum):
   DEBUG = "\033[94m"
   INFO = "\033[92m"
@@ -25,12 +38,12 @@ class Logger:
   log_level: LogLevel
   log_name: str
 
-  def __init__(self, log_level: LogLevel = LogLevel.INFO, log_name: str = "logger", log_file: Optional[str] = None):
+  def __init__(self, log_level: int = LogLevel.INFO, log_name: str = "logger", log_file: Optional[str] = None):
     """
     Initialize the logger.
     """
 
-    self.log_level = log_level
+    self.log_level = LogLevel.from_int(log_level)
     self.log_file = log_file
     self.log_name = log_name
 
@@ -40,45 +53,48 @@ class Logger:
     """
     if self.log_file is not None:
       with open(self.log_file, 'a') as f:
-        f.write(f"{log_color.value}{self.log_name} -- {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -- {LogColor.RESET.value}: {message}\n")
+        f.write(f"{self.log_name} -- {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -- {message}\n")
     else:
-      print(f"{log_color.value}{self.log_name} -- {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -- {LogColor.RESET.value} ", end="")
+      print(
+        f"{log_color.value}{log_color.name}: {self.log_name} -- {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} -- {LogColor.RESET.value} ", 
+        end=""
+      )
       print(message)
 
   def debug(self, message: str):
     """
     Log a debug message.
     """
-    if self.log_level <= LogLevel.DEBUG:
-      self.log(message, LogColor.DEBUG)
+    if self.log_level >= LogLevel.DEBUG:
+      self.log(f"{message}", LogColor.DEBUG)
 
   def info(self, message: str):
     """
     Log an info message.
     """
-    if self.log_level <= LogLevel.INFO:
-      self.log(message, LogColor.INFO)
+    if self.log_level >= LogLevel.INFO:
+      self.log(f"{message}", LogColor.INFO)
 
   def warning(self, message: str):
     """
     Log a warning message.
     """
-    if self.log_level <= LogLevel.WARNING:
-      self.log(message, LogColor.WARNING)
+    if self.log_level >= LogLevel.WARNING:
+      self.log(f"{message}", LogColor.WARNING)
 
   def error(self, message: str):
     """
     Log an error message.
     """
-    if self.log_level <= LogLevel.ERROR:
-      self.log(message, LogColor.ERROR)
+    if self.log_level >= LogLevel.ERROR:
+      self.log(f"{message}", LogColor.ERROR)
 
   def critical(self, message: str):
     """
     Log a critical message.
     """
-    if self.log_level <= LogLevel.CRITICAL:
-      self.log(message, LogColor.CRITICAL)
+    if self.log_level >= LogLevel.CRITICAL:
+      self.log(f"{message}", LogColor.CRITICAL)
 
 
 def get_logger(log_level: LogLevel = LogLevel.INFO, log_name: str = "logger", log_file: Optional[str] = None) -> Logger:
