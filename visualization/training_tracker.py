@@ -115,19 +115,32 @@ class TrainingTracker:
       # Reshape predictions to match meshgrid
       Z = np.array(predictions).reshape(X_mesh.shape)
       
+      # Get number of classes from the dataset
+      n_classes = self.classification_dataset.classes_size
+      
+      # Create discrete colormap for classes (no intermediate colors)
+      from matplotlib.colors import ListedColormap
+      # Use distinct colors for each class
+      discrete_colors = plt.cm.Spectral(np.linspace(0, 1, n_classes))
+      discrete_cmap = ListedColormap(discrete_colors)
+      
       # Create the plot
       plt.figure(figsize=(10, 8))
       
-      # Show decision boundary
-      plt.contourf(X_mesh, Y_mesh, Z, alpha=0.4, cmap=plt.cm.Spectral)
-      plt.contour(X_mesh, Y_mesh, Z, colors='black', linewidths=0.5, alpha=0.2)
+      # Show decision boundary with discrete classes
+      # Set levels to ensure discrete boundaries (one level per class)
+      levels = np.arange(n_classes + 1) - 0.5  # Centers the colors on integer class values
+      contour = plt.contourf(X_mesh, Y_mesh, Z, levels=levels, cmap=discrete_cmap, alpha=0.4)
+      plt.contour(X_mesh, Y_mesh, Z, levels=levels, colors='black', linewidths=0.5, alpha=0.2)
       
       # Overlay training data points as circles
       train_scatter = plt.scatter(
         self.classification_dataset.x_train[:, 0], 
         self.classification_dataset.x_train[:, 1], 
         c=self.classification_dataset.y_train, 
-        cmap=plt.cm.Spectral, 
+        cmap=discrete_cmap, 
+        vmin=-0.5,
+        vmax=n_classes - 0.5,
         edgecolors='black', 
         linewidths=1.5, 
         s=100, 
@@ -141,7 +154,9 @@ class TrainingTracker:
         self.classification_dataset.x_test[:, 0], 
         self.classification_dataset.x_test[:, 1], 
         c=self.classification_dataset.y_test, 
-        cmap=plt.cm.Spectral, 
+        cmap=discrete_cmap,
+        vmin=-0.5,
+        vmax=n_classes - 0.5,
         edgecolors='black', 
         linewidths=1.5, 
         s=100, 
@@ -153,7 +168,11 @@ class TrainingTracker:
       plt.xlabel('Feature 1')
       plt.ylabel('Feature 2')
       plt.title('Decision Boundary with Training (circles) and Test (triangles) Data')
-      plt.colorbar(train_scatter, label='Class')
+      
+      # Create discrete colorbar
+      cbar = plt.colorbar(contour, label='Class', ticks=np.arange(n_classes))
+      cbar.set_ticklabels([str(i) for i in range(n_classes)])
+      
       plt.legend()
       plt.tight_layout()
       return plt.gcf()

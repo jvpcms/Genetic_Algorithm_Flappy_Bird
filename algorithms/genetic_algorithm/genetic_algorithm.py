@@ -83,7 +83,7 @@ class GeneticAlgorithm:
 
         train_accuracy, test_accuracy = self.training_tracker.train_test_accuracy()
         if self.logger is not None:
-          self.logger.debug(f"Train accuracy: {train_accuracy:.4f}") 
-          self.logger.debug(f"Test accuracy: {test_accuracy:.4f}")
+          self.logger.info(f"Train accuracy: {train_accuracy:.4f}") 
+          self.logger.info(f"Test accuracy: {test_accuracy:.4f}")
 
         self.training_tracker.plot()
